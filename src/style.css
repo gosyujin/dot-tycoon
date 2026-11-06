@@ -1,0 +1,141 @@
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #1f2330;
+  --muted: #667085;
+  --line: #dfe3ee;
+  --accent: #4f6ef7;
+  --accent-text: #ffffff;
+  --warn: #b42318;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161d;
+    --card: #1d2029;
+    --text: #e8eaf2;
+    --muted: #9aa3b5;
+    --line: #333849;
+    --accent: #7b92ff;
+    --accent-text: #0e1220;
+    --warn: #ff8f85;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.6 system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+}
+.top, .layout { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.top { padding-top: 24px; }
+.top h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: 0.02em; }
+.top p { margin: 0; color: var(--muted); }
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 16px;
+  padding-bottom: 40px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+.card.wide { grid-column: 1 / -1; }
+.card h2 { margin: 0 0 12px; font-size: 16px; }
+.card h2 small { color: var(--muted); font-weight: 400; }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.drop {
+  display: grid;
+  place-items: center;
+  min-height: 96px;
+  padding: 12px;
+  border: 2px dashed var(--line);
+  border-radius: 10px;
+  text-align: center;
+  color: var(--muted);
+  cursor: pointer;
+}
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); color: var(--text); }
+.drop input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.drop small { color: var(--muted); }
+
+.stage { position: relative; margin-top: 12px; line-height: 0; }
+.stage canvas { width: 100%; height: auto; border-radius: 8px; display: block; }
+#overlay-canvas { position: absolute; inset: 0; pointer-events: none; }
+#overlay-canvas[hidden] { display: none; }
+.inline { display: block; margin-top: 8px; color: var(--muted); font-size: 13px; }
+.status { margin: 12px 0 0; color: var(--muted); font-size: 13px; min-height: 1.6em; }
+.status.error { color: var(--warn); }
+
+.preview {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  border-radius: 10px;
+  /* 透過が分かる市松模様 */
+  background:
+    conic-gradient(#0000 25%, rgba(128, 128, 128, 0.18) 0 50%, #0000 0 75%, rgba(128, 128, 128, 0.18) 0) 0 0 / 20px 20px,
+    var(--bg);
+}
+#dot {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+.save { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; margin-top: 12px; }
+.save label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
+
+select, input[type='color'], button {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 34px;
+}
+select { padding: 4px 8px; }
+button {
+  padding: 4px 16px;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: transparent;
+  font-weight: 600;
+}
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button#reset { background: var(--card); color: var(--text); border-color: var(--line); font-weight: 400; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px 16px;
+}
+.field { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
+.field input[type='color'] { width: 100%; padding: 2px; cursor: pointer; }
+.field select { width: 100%; }
+.field.check { display: flex; align-items: center; gap: 8px; align-self: end; min-height: 34px; }
+.actions { margin: 12px 0 0; }
+.debug {
+  margin: 12px 0 0;
+  padding: 10px;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 12px;
+}

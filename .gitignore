@@ -1,0 +1,8 @@
+node_modules
+dist
+public/mediapipe
+public/models
+dev-samples
+*.part
+.DS_Store
+reference
