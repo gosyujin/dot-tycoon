@@ -1,6 +1,10 @@
-import { FaceLandmarker, FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision';
+import { FaceLandmarker, FilesetResolver, ImageEmbedder, ImageSegmenter } from '@mediapipe/tasks-vision';
 import { extractFeatures, type AnalysisResult, type ClassMask, type Pt } from './features';
+import { cropEyes } from './glasses-crop';
+import { glassesScore, GLASSES_MODEL } from './glasses-model';
 import { LEFT_EYE_OUTER, RIGHT_EYE_OUTER } from './landmarks';
+import { mix } from './color';
+import { DEFAULT_FEATURES } from './types';
 
 export class NoFaceError extends Error {
   constructor() {
@@ -25,6 +29,8 @@ const assetUrl = (path: string): string => new URL(path, document.baseURI).href;
 interface Models {
   landmarker: FaceLandmarker;
   segmenter: ImageSegmenter;
+  /** 普通のメガネの判定用。読み込めなかったときは null（サングラス判定だけで動く） */
+  embedder: ImageEmbedder | null;
 }
 let modelsPromise: Promise<Models> | null = null;
 
@@ -32,7 +38,7 @@ let modelsPromise: Promise<Models> | null = null;
 export function loadModels(): Promise<Models> {
   modelsPromise ??= (async () => {
     const fileset = await FilesetResolver.forVisionTasks(assetUrl('mediapipe/wasm'));
-    const [landmarker, segmenter] = await Promise.all([
+    const [landmarker, segmenter, embedder] = await Promise.all([
       FaceLandmarker.createFromOptions(fileset, {
         baseOptions: { modelAssetPath: assetUrl('models/face_landmarker.task'), delegate: 'CPU' },
         runningMode: 'IMAGE',
@@ -45,8 +51,16 @@ export function loadModels(): Promise<Models> {
         outputCategoryMask: true,
         outputConfidenceMasks: false,
       }),
+      ImageEmbedder.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: assetUrl('models/mobilenet_v3_small.tflite'), delegate: 'CPU' },
+        runningMode: 'IMAGE',
+        l2Normalize: true,
+      }).catch((e) => {
+        console.warn('メガネ判定モデルを読み込めませんでした（サングラスのみ自動判定になります）', e);
+        return null;
+      }),
     ]);
-    return { landmarker, segmenter };
+    return { landmarker, segmenter, embedder };
   })();
   // 失敗したら次回やり直せるように
   modelsPromise.catch(() => {
@@ -153,5 +167,36 @@ export async function analyzeImage(
 
   const image = canvas.getContext('2d', { willReadFrequently: true })!.getImageData(0, 0, canvas.width, canvas.height);
   const result = extractFeatures({ image, mask, landmarks: face.landmarks, blendshapes: face.blendshapes });
+  if (result.features.glasses === 'none' && models.embedder) {
+    onStatus('メガネを調べています…');
+    try {
+      const score = scoreClearGlasses(models.embedder, canvas, face.landmarks);
+      result.debug.glassesModelScore = score;
+      if (score > GLASSES_MODEL.threshold) {
+        result.features.glasses = 'square';
+        result.features.glassesColor = mix(result.features.hairColor, DEFAULT_FEATURES.glassesColor, 0.5);
+      }
+    } catch (e) {
+      console.warn('メガネ判定に失敗しました', e);
+    }
+  }
   return { canvas, mask, landmarks: face.landmarks, result, rotationDeg };
+}
+
+function flipHorizontally(c: HTMLCanvasElement): HTMLCanvasElement {
+  const o = document.createElement('canvas');
+  o.width = c.width;
+  o.height = c.height;
+  const x = o.getContext('2d')!;
+  x.translate(c.width, 0);
+  x.scale(-1, 1);
+  x.drawImage(c, 0, 0);
+  return o;
+}
+
+/** 目元の画像から、透明なレンズのメガネらしさを返す（大きいほどメガネ） */
+function scoreClearGlasses(embedder: ImageEmbedder, canvas: HTMLCanvasElement, landmarks: Pt[]): number {
+  const crop = cropEyes(canvas, landmarks, RIGHT_EYE_OUTER, LEFT_EYE_OUTER)[GLASSES_MODEL.crop];
+  const emb = (c: HTMLCanvasElement): Float32Array => Float32Array.from(embedder.embed(c).embeddings[0].floatEmbedding ?? []);
+  return glassesScore(emb(crop), emb(flipHorizontally(crop)));
 }

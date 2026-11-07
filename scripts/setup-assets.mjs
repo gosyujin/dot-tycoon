@@ -19,13 +19,12 @@ const MODELS = [
     url: 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite',
     minBytes: 1_000_000,
   },
-  // 以下は開発専用(メガネ分類器の学習)。`npm run setup:train` のときだけ取得し、公開物には入れない
   {
-    train: true,
     file: 'mobilenet_v3_small.tflite',
     url: 'https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/latest/mobilenet_v3_small.tflite',
     minBytes: 1_000_000,
   },
+  // 開発専用(メガネ分類器の学習で比較に使う)。`npm run setup:train` のときだけ取得し、公開物には入れない
   {
     train: true,
     file: 'mobilenet_v3_large.tflite',

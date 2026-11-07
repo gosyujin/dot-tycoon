@@ -50,7 +50,7 @@ const SELECTS: [SelectKey, string, [string, string][]][] = [
   ['hairVolume', '髪のボリューム', [['0', '普通'], ['1', '高め'], ['2', 'ふんわり広め']]],
   ['eyes', '目', [['open', 'ひらく'], ['wide', 'おおきい'], ['happy', 'にっこり'], ['closed', 'とじる']]],
   ['mouth', '口', [['neutral', 'ふつう'], ['smile', 'ほほえみ'], ['grin', 'にっこり（歯）'], ['open', 'あけ口']]],
-  ['glasses', 'メガネ（サングラスのみ自動）', [['none', 'なし'], ['round', '丸'], ['square', '四角'], ['sun', 'サングラス']]],
+  ['glasses', 'メガネ', [['none', 'なし'], ['round', '丸'], ['square', '四角'], ['sun', 'サングラス']]],
   ['bgMode', '背景', [['photo', '写真の背景色'], ['hair', '髪色の淡色'], ['transparent', '透明']]],
 ];
 

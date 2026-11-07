@@ -26,6 +26,7 @@ const state = {
   skipped: { noFace: 0, sun: 0, error: 0 },
   report: '',
   json: '',
+  oofs: {} as Record<string, { oof: number[]; y: number[] }>,
 };
 (window as unknown as { __train: typeof state }).__train = state;
 const log = (s: string): void => {
@@ -105,12 +106,12 @@ function folds(n: number, k: number, labels: number[]): number[] {
   return out;
 }
 
-export async function evaluate(lambdas = [0.3, 1, 3, 10]): Promise<void> {
+export async function evaluate(lambdas = [0.3, 1, 3, 10], onlyKeys?: string[]): Promise<void> {
   state.status = 'evaluating';
   const rows = state.rows;
   const y = rows.map((r) => r.label);
   const fold = folds(rows.length, 5, y);
-  const keys = Object.keys(rows[0].feats);
+  const keys = onlyKeys ?? Object.keys(rows[0].feats);
   const lines: string[] = [];
   const results: { key: string; lambda: number; auc: number; recall95: number; acc: number }[] = [];
   for (const key of keys) {
@@ -132,6 +133,7 @@ export async function evaluate(lambdas = [0.3, 1, 3, 10]): Promise<void> {
         }
         await new Promise((r) => setTimeout(r, 0));
       }
+      state.oofs[`${key}|${lambda}`] = { oof, y };
       const th = thresholdAtSpecificity(oof, y, 0.95);
       const acc = oof.filter((s, i) => (s > 0 ? 1 : -1) === y[i]).length / rows.length;
       results.push({ key, lambda, auc: auc(oof, y), recall95: th.recall, acc });

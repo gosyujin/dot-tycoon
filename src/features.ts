@@ -73,6 +73,8 @@ export interface AnalysisDebug {
     foreheadRight: number;
   };
   glassesScore: number;
+  /** 普通のメガネの分類器のスコア（検出処理側で設定。サングラスのときは未設定） */
+  glassesModelScore?: number;
   expression: { smile: number; jawOpen: number; blink: number; squint: number; wide: number };
   /** 写真から取れず、既定値で補った項目 */
   fallbacks: string[];
