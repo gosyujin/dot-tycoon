@@ -75,6 +75,9 @@ export interface AnalysisDebug {
   glassesScore: number;
   /** 普通のメガネの分類器のスコア（検出処理側で設定。サングラスのときは未設定） */
   glassesModelScore?: number;
+  /** 写真かイラストか（セグメンテーションが効いたかで判定）／顔を拡大して解析したか */
+  mode?: 'photo' | 'illustration';
+  zoomed?: boolean;
   expression: { smile: number; jawOpen: number; blink: number; squint: number; wide: number };
   /** 写真から取れず、既定値で補った項目 */
   fallbacks: string[];
